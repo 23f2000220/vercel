@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from statistics import mean
 from pathlib import Path
 import json
-from pydantic import BaseModel
+
 
 
 app = FastAPI()
@@ -16,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-telemetry_path = Path(__file__).resolve().parent.parent / "data" / "telemetry.json"
+telemetry_path = Path(__file__).resolve().parent / "data" / "telemetry.json"
 with open(telemetry_path, "r") as f:
     telemetry = json.load(f)
 
@@ -57,20 +57,7 @@ async def analytics(request: Request):
         }
 
     return results
-# class UserData(BaseModel):
-#     name: str
-#     email: str
-#     age: int
 
 
-
-# @app.post("/api/submit")
-# async def handle_post(data: UserData):
-#     # Process the received payload data
-#     processed_message = f"Hello {data.name}, your email is {data.email}."
-    
-#     return {
-#         "status": "success",
-#         "received_data": data,
-#         "message": processed_message
-#     }
+from mangum import Mangum
+handler = Mangum(app, lifespan="off")
