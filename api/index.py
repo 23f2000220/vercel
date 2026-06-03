@@ -12,7 +12,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["*"],
+    allow_methods=["POST", "OPTIONS", "GET"],
     allow_headers=["*"],
 )
 
@@ -24,7 +24,7 @@ with open(telemetry_path, "r") as f:
 def read_root():
     return {"message": "Hello mighty World!"}
 
-@app.post("/")
+@app.post("/latency")
 async def analytics(request: Request):
     body = await request.json()
     regions = body.get("regions", [])
