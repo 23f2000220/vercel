@@ -13,44 +13,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-telemetry = {
-    "amer": [
-        {"latency": 150, "uptime": 0.99},
-        {"latency": 170, "uptime": 0.98},
-        {"latency": 190, "uptime": 0.97},
-    ],
-    "apac": [
-        {"latency": 160, "uptime": 0.96},
-        {"latency": 175, "uptime": 0.95},
-        {"latency": 200, "uptime": 0.94},
-    ],
-}
 
-@app.post("/")
-async def analytics(request: Request):
-    body = await request.json()
-    regions = body["regions"]
-    threshold_ms = body["threshold_ms"]
+@app.get("/")
+def read_root():
+    return {"message": "Hello mighty World!"}
+# @app.post("/")
+# async def analytics(request: Request):
+#     body = await request.json()
+#     regions = body["regions"]
+#     threshold_ms = body["threshold_ms"]
 
-    result = {}
+#     result = {}
 
-    for region in regions:
-        records = telemetry.get(region, [])
-        latencies = [r["latency"] for r in records]
-        uptimes = [r["uptime"] for r in records]
+#     for region in regions:
+#         records = telemetry.get(region, [])
+#         latencies = [r["latency"] for r in records]
+#         uptimes = [r["uptime"] for r in records]
 
-        if latencies:
-            sorted_latencies = sorted(latencies)
-            p95_index = max(0, int(0.95 * len(sorted_latencies)) - 1)
-            p95 = sorted_latencies[p95_index]
-        else:
-            p95 = None
+#         if latencies:
+#             sorted_latencies = sorted(latencies)
+#             p95_index = max(0, int(0.95 * len(sorted_latencies)) - 1)
+#             p95 = sorted_latencies[p95_index]
+#         else:
+#             p95 = None
 
-        result[region] = {
-            "avg_latency": mean(latencies) if latencies else None,
-            "p95_latency": p95,
-            "avg_uptime": mean(uptimes) if uptimes else None,
-            "breaches": sum(1 for r in records if r["latency"] > threshold_ms),
-        }
+#         result[region] = {
+#             "avg_latency": mean(latencies) if latencies else None,
+#             "p95_latency": p95,
+#             "avg_uptime": mean(uptimes) if uptimes else None,
+#             "breaches": sum(1 for r in records if r["latency"] > threshold_ms),
+#         }
 
-    return result
+#     return result
