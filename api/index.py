@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from statistics import mean
 from pathlib import Path
 import json
+from pydantic import BaseModel
+
 
 app = FastAPI()
 
@@ -18,58 +20,59 @@ telemetry_path = Path(__file__).resolve().parent.parent / "data" / "telemetry.js
 with open(telemetry_path, "r") as f:
     telemetry = json.load(f)
 
-# @app.post("/")
-# async def analytics(request: Request):
-#     body = await request.json()
-#     regions = body.get("regions", [])
-#     threshold_ms = body.get("threshold_ms", 0)
-
-#     result = {}
-
-#     for region in regions:
-#         records = telemetry.get(region, [])
-#         latencies = [r["latency"] for r in records]
-#         uptimes = [r["uptime"] for r in records]
-
-#         if latencies:
-#             sorted_latencies = sorted(latencies)
-#             p95_index = max(0, int(0.95 * len(sorted_latencies)) - 1)
-#             p95_latency = sorted_latencies[p95_index]
-#             avg_latency = mean(latencies)
-#             avg_uptime = mean(uptimes)
-#         else:
-#             p95_latency = None
-#             avg_latency = None
-#             avg_uptime = None
-
-#         breaches = sum(1 for r in records if r["latency"] > threshold_ms)
-
-#         result[region] = {
-#             "avg_latency": avg_latency,
-#             "p95_latency": p95_latency,
-#             "avg_uptime": avg_uptime,
-#             "breaches": breaches,
-#         }
-
-#     return result
-
-class UserData(BaseModel):
-    name: str
-    email: str
-    age: int
-    
 @app.get("/")
 def read_root():
     return {"message": "Hello mighty World!"}
 
+@app.post("/")
+async def analytics(request: Request):
+    body = await request.json()
+    regions = body.get("regions", [])
+    threshold_ms = body.get("threshold_ms", 0)
 
-@app.post("/api/submit")
-async def handle_post(data: UserData):
-    # Process the received payload data
-    processed_message = f"Hello {data.name}, your email is {data.email}."
+    result = {}
+
+    for region in regions:
+        records = telemetry.get(region, [])
+        latencies = [r["latency"] for r in records]
+        uptimes = [r["uptime"] for r in records]
+
+        if latencies:
+            sorted_latencies = sorted(latencies)
+            p95_index = max(0, int(0.95 * len(sorted_latencies)) - 1)
+            p95_latency = sorted_latencies[p95_index]
+            avg_latency = mean(latencies)
+            avg_uptime = mean(uptimes)
+        else:
+            p95_latency = None
+            avg_latency = None
+            avg_uptime = None
+
+        breaches = sum(1 for r in records if r["latency"] > threshold_ms)
+
+        result[region] = {
+            "avg_latency": avg_latency,
+            "p95_latency": p95_latency,
+            "avg_uptime": avg_uptime,
+            "breaches": breaches,
+        }
+
+    return result
+
+# class UserData(BaseModel):
+#     name: str
+#     email: str
+#     age: int
+
+
+
+# @app.post("/api/submit")
+# async def handle_post(data: UserData):
+#     # Process the received payload data
+#     processed_message = f"Hello {data.name}, your email is {data.email}."
     
-    return {
-        "status": "success",
-        "received_data": data,
-        "message": processed_message
-    }
+#     return {
+#         "status": "success",
+#         "received_data": data,
+#         "message": processed_message
+#     }
