@@ -17,17 +17,12 @@ app.add_middleware(
 telemetry_path = Path(__file__).resolve().parent.parent / "data" / "telemetry.json"
 with open(telemetry_path, "r") as f:
     telemetry = json.load(f)
-@app.get("/")
-def read_root():
-    return {"message": "Hello mighty World!"}
-
-
 
 @app.post("/")
 async def analytics(request: Request):
     body = await request.json()
-    regions = body["regions"]
-    threshold_ms = body["threshold_ms"]
+    regions = body.get("regions", [])
+    threshold_ms = body.get("threshold_ms", 0)
 
     result = {}
 
@@ -39,15 +34,26 @@ async def analytics(request: Request):
         if latencies:
             sorted_latencies = sorted(latencies)
             p95_index = max(0, int(0.95 * len(sorted_latencies)) - 1)
-            p95 = sorted_latencies[p95_index]
+            p95_latency = sorted_latencies[p95_index]
+            avg_latency = mean(latencies)
+            avg_uptime = mean(uptimes)
         else:
-            p95 = None
+            p95_latency = None
+            avg_latency = None
+            avg_uptime = None
+
+        breaches = sum(1 for r in records if r["latency"] > threshold_ms)
 
         result[region] = {
-            "avg_latency": mean(latencies) if latencies else None,
-            "p95_latency": p95,
-            "avg_uptime": mean(uptimes) if uptimes else None,
-            "breaches": sum(1 for r in records if r["latency"] > threshold_ms),
+            "avg_latency": avg_latency,
+            "p95_latency": p95_latency,
+            "avg_uptime": avg_uptime,
+            "breaches": breaches,
         }
 
     return result
+# @app.get("/")
+# def read_root():
+#     return {"message": "Hello mighty World!"}
+
+
