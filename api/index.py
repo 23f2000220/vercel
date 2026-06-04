@@ -30,7 +30,7 @@ async def analytics(request: Request):
     regions = body.get("regions", [])
     threshold_ms = body.get("threshold_ms", 0)
 
-    results = {}
+    output = []
 
     for region in regions:
         records = [r for r in telemetry if r.get("region") == region]
@@ -49,14 +49,15 @@ async def analytics(request: Request):
         avg_uptime = mean(uptimes) if uptimes else None
         breaches = sum(1 for r in records if r.get("latency_ms", 0) > threshold_ms)
 
-        results[region] = {
+        output.append({
+            "region": region,
             "avg_latency": avg_latency,
             "p95_latency": p95_latency,
             "avg_uptime": avg_uptime,
             "breaches": breaches,
-        }
+        })
 
-    return results
+    return {"regions": output}
 
 
 from mangum import Mangum
