@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from statistics import mean
 from pathlib import Path
 import json
+import numpy as np
 
 
 
@@ -39,8 +40,9 @@ async def analytics(request: Request):
 
         if latencies:
             sorted_latencies = sorted(latencies)
-            p95_index = max(0, int(0.95 * len(sorted_latencies)) - 1)
-            p95_latency = sorted_latencies[p95_index]
+            # p95_index = max(0, int(0.95 * len(sorted_latencies)) - 1)
+            p95_latency = float(np.percentile(latencies, 95))
+            # p95_latency = sorted_latencies[p95_index]
             avg_latency = mean(latencies)
         else:
             p95_latency = None
